@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,10 +22,10 @@ DATA_DIR = BASE_DIR / "data"
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4a)mon)6i2!vf7#mc_cdy^hng0u1&50fbht3_-vyx$qjc2&qtd'
+SECRET_KEY = config('SECRET_KEY', default=None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DJANGO_DEBUG', default=0, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # external apps,
+    'django_celery_beat',
+    'django_celery_results',
+    # internal apps,
     'profiles',
     'movies',
     'ratings',
@@ -55,6 +59,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'cfehome.urls'
+
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers.DatabaseScheduler'
+CELERY_BROKER_URL = config('CELERY_BROKER_REDIS_URL', default='redis://localhost:6379')
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
+
 
 TEMPLATES = [
     {
