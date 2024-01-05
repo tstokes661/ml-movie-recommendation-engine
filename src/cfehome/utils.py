@@ -1,6 +1,6 @@
 import csv
 import datetime
-from pprint import pprint
+# from pprint import pprint
 from django.conf import settings
 
 from faker import Faker
