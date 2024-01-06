@@ -88,3 +88,6 @@ class Movie(models.Model):
         return self.rating_avg
 
     objects = MovieManager()
+
+    def get_absolute_url(self):
+        return f"/movies/{self.id}/"
