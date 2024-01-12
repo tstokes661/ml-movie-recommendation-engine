@@ -1,26 +1,34 @@
+{% load get_dict_val %}
+{% with my_ratings|get_dict_val:object.id as current_rating %}
 <div class="card shadow-sm h-100">
     <div class="card-body">
-        <h3>{{ object.title }}</h3>
+        <h3>{{ object.title }} {% if object.release_date.year %} ({{ object.release_date.year }}) {% endif %}</h3>
+        <span class="small float-end">ID: {{ object.id }}</span>
         <p class="card-text">{{ object.overview }}</p>
         <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group">
                 {% if object.get_absolute_url not in request.path %}
                 <a href="{{ object.get_absolute_url }}" type="button" class="btn btn-sm btn-outline-secondary">View</a>
                 {% endif %}
-                {% comment %} <select class="form-control">
-                    <option vlaue="1">1</option>
-                    <option vlaue="2">2</option>
-                    <option vlaue="3">3</option>
-                    <option vlaue="4">4</option>
-                    <option vlaue="5">5</option>
-                </select> {% endcomment %}
+
 
             </div>
-            {% if object.rating_avg  is not None %}
-            <small class="text-muted">{{ object.rating_avg }} ({{ object.rating_count }})</small>
-            {% endif %}
-
-
+            <div>
+                <select class="form-control">
+                    {% for choice in rating_choices %}
+                    {% if choice is None %}
+                    <option disabled selected>Pick a rating</option>
+                    {% else %}
+                    <option {% if current_rating == choice %} selected {% endif %} value="{{ choice }}">{{ choice }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+                {% if object.rating_avg  is not None %}
+                <small class="text-muted">{{ object.rating_avg }} ({{ object.rating_count }})</small>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
+
+{% endwith %}
