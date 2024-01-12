@@ -52,7 +52,8 @@ def task_update_movie_ratings(object_id=None):
     start_time = time.time()
     ctype = ContentType.objects.get_for_model(Movie)
     agg_ratings = Rating.objects.filter(
-        content_type=ctype
+        content_type=ctype,
+        active=True
     )
     if object_id is not None:
         agg_ratings = agg_ratings.filter(
