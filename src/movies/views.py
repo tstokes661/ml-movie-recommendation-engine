@@ -3,8 +3,10 @@ from django.views import generic
 from .models import Movie
 
 SORTING_CHOICES = {
-    "Highest Ratings": "-rating_avg",
-    "Lowest Ratings": "rating_avg",
+    "Top rated": "-rating_avg",
+    "Low Rated": "rating_avg",
+    "Popular": "popular",
+    "Unpopular": "unpopular",
     "Recent": "-release_date",
     "Old": "release_date",
     "Most Ratings": "-rating_count",
@@ -18,15 +20,17 @@ class MovieListView(generic.ListView):
 
     def get_queryset(self):
         request = self.request
-        default_sort = request.session.get(
+        sort = request.GET.get('sort') or request.session.get(
             'movie_sort_order'
-        ) or '-rating_avg'
-        qs = Movie.objects.all().order_by(default_sort)
-        sort = request.GET.get('sort')
+        ) or 'popular'
+        qs = Movie.objects.all()
         if sort is not None:
             request.session['movie_sort_order'] = sort
+            if sort == 'popular':
+                return qs.popular()
+            elif sort == 'unpopular':
+                return qs.popular(reverse=True)
             qs = qs.order_by(sort)
-
         return qs
 
     def get_template_names(self):
@@ -96,3 +100,28 @@ class MovieInfiniteRatingView(MovieDetailView):
 
 
 movie_infinite_rating_view = MovieInfiniteRatingView.as_view()
+
+
+class MoviePopularView(MovieDetailView):
+    def get_object(self):
+        user = self.request.user
+        exclude_ids = []
+        if user.is_authenticated:
+            exclude_ids = [x.object_id for x in user.rating_set.filter(
+                active=True
+            )]
+        movie_id_options = Movie.objects.all().popular().exclude(
+            id__in=exclude_ids
+        ).values_list('id', flat=True)[:250]
+        return Movie.objects.filter(
+            id__in=movie_id_options
+        ).order_by("?").first()
+
+    def get_template_names(self):
+        request = self.request
+        if request.htmx:
+            return ['movies/snippet/infinite.html']
+        return ['movies/infinite-view.html']
+
+
+movie_popular_view = MoviePopularView.as_view()

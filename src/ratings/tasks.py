@@ -1,7 +1,7 @@
 import random
 import time
 import datetime
-
+import decimal
 from django.db.models import Avg, Count
 from celery import shared_task
 from movies.models import Movie
@@ -69,6 +69,7 @@ def task_update_movie_ratings(object_id=None):
         id = agg_rate['object_id']
         rating_avg = agg_rate['average']
         rating_count = agg_rate['count']
+        score = decimal.Decimal(rating_avg * rating_count)
         qs = Movie.objects.filter(
             id=id
         )
@@ -76,6 +77,7 @@ def task_update_movie_ratings(object_id=None):
         qs.update(
             rating_avg=rating_avg,
             rating_count=rating_count,
+            score=score,
             rating_last_updated=timezone.now()
         )
     total_time = time.time() - start_time

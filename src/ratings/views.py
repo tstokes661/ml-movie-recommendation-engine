@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 from .models import Rating
 from django.views.decorators.http import require_http_methods
+from .tasks import task_update_movie_ratings
 
 
 @require_http_methods(['POST'])
@@ -32,5 +33,6 @@ def rate_movie_view(request):
             Rating saved</span>"""
             response = HttpResponse(message, status=200)
             response['HX-Trigger-After-Settle'] = 'did-rate-movie'
+            task_update_movie_ratings.delay(object_id=object_id)
             return response
     return HttpResponse(message, status=200)
